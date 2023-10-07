@@ -1,8 +1,7 @@
 from flask import Flask, request, jsonify, send_from_directory
 import os
 from werkzeug.utils import secure_filename
-from PIL import Image
-from models.text2speech import text2speech
+from models.Text2Speech import text2speech
 
 app = Flask(__name__)
 UPLOAD_FOLDER = 'uploads'  # Thư mục lưu trữ ảnh tải lên
