@@ -24,5 +24,5 @@ class Text2Speech:
         # Xóa ảnh tạm sau khi nhận dạng
         os.remove(temp_filename)
 
-        with open('./output/temp.txt', 'w', encoding='utf-8') as file:
-            file.write(text)
+        return text
+
