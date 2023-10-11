@@ -1,7 +1,7 @@
 import requests
 
 url = 'http://localhost:5000/upload'
-files = {'file': open('D:/STUDY/DHSP/NCKH-2023-With my idol/Vi6/uploads/test.jpg', 'rb')}
+files = {'file': open('/uploads/test01.jpg', 'rb')}
 
 response = requests.post(url, files=files)
 

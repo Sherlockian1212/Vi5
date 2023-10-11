@@ -7,7 +7,7 @@ new_default_directory = 'D:/STUDY/DHSP/NCKH-2023-With my idol/Vi6/'
 
 # Sử dụng os.chdir() để thiết lập thư mục mặc định
 os.chdir(new_default_directory)
-image = cv2.imread('uploads/test01.png')
+image = cv2.imread('uploads/test02.jpg')
 
 preprocessimg = edgedetection.EdgeDetection(image).edgeDetection()
 # print(preprocessimg)
