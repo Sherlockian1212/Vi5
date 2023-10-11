@@ -1,5 +1,5 @@
 import cv2
-
+from models.ImageProcessing.edgedetection import EdgeDetection
 class ImageProcessing:
     def __init__(self, image):
         self.image = image
@@ -9,9 +9,7 @@ class ImageProcessing:
     output: detect edge, delete background, rotate, cut --> image
     '''
     def detectEdge(self):
-
-        output = self.image.copy()
-
+        output = EdgeDetection(self.image)
         return output
 
     ''' TODO
