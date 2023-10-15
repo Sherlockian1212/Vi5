@@ -2,11 +2,12 @@ import os
 from PIL import Image
 import cv2
 import pytesseract
+from gtts import gTTS
 
 class Text2Speech:
     def __init__(self, image):
         self.image = image
-    def text2speech(self):
+    def image2Text(self):
         image = self.image
         # Chuyển ảnh sang độ xám
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -26,3 +27,11 @@ class Text2Speech:
 
         return text
 
+    def text2Speech(self):
+        text = self.image2Text()
+        output = gTTS(text, lang="vi", slow=False)
+
+        new_default_directory = os.getcwd()
+        # Sử dụng os.chdir() để thiết lập thư mục mặc định
+        os.chdir(new_default_directory)
+        output.save('../output/output.mp3')
