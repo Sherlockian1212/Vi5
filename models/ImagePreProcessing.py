@@ -1,6 +1,7 @@
-import cv2
 import numpy as np
-from rembg import remove
+import cv2
+from sklearn.cluster import KMeans
+from collections import Counter
 
 def order_points(pts):
     """Rearrange coordinates to order:
@@ -21,13 +22,13 @@ def order_points(pts):
     # return the ordered coordinates
     return rect.astype('int').tolist()
 
-class imagePreprocessing:
+class K_means:
     def __init__(self, image):
         self.image = image
+    def cluster(self):
+        img = self.image
 
-    def imageProcessing(selt):
-        img = selt.image
-        # Resize image to workable size
+        # Resize image
         dim_limit = 1080
         max_dim = max(img.shape)
         if max_dim > dim_limit:
@@ -36,41 +37,70 @@ class imagePreprocessing:
 
         # Create a copy of resized original image for later use
         orig_img = img.copy()
-        # cv2.imshow("original_resized", orig_img)
+        # cv2.imshow('orig_img', orig_img)
+        # cv2.waitKey(0)
 
-        # Repeated Closing operation to remove text from the document.
-        kernel = np.ones((5, 5), np.uint8)
-        img = cv2.morphologyEx(img, cv2.MORPH_CLOSE, kernel, iterations=3)
+        # dir = 'D:\\STUDY\\DHSP\\Year3\\HK1\\DigitalImageProcessing-ThayVietDzeThuong\\Final-Project\\Document2Braille\\resources\\K-means\\'
 
-        output = remove(img)
+        # Repeated Closing operation
+        kernel = np.ones((9, 9), np.uint8)
+        morph = cv2.morphologyEx(img, cv2.MORPH_CLOSE, kernel, iterations=3)
+        # cv2.imwrite(dir + f"morph.png", morph)
+        # cv2.imshow('morphology', morph)
+        # cv2.waitKey(0)
 
-        gray_image = cv2.cvtColor(output, cv2.COLOR_RGB2GRAY)
-        segmented_image = cv2.adaptiveThreshold(gray_image,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY,11,2)
+        (h,w,c) = morph.shape
+        img2D = morph.reshape(h*w,c)
 
-        canny = cv2.Canny(segmented_image, 0, 200)
-        canny = cv2.dilate(canny, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (21, 21)))
+        kmeans_model = KMeans(n_clusters=7)
+        cluster_labels = kmeans_model.fit_predict(img2D)
 
-        # Finding contours for the detected edges.
-        contours, hierarchy = cv2.findContours(canny, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
-        # Keeping only the largest detected contour.
-        page = sorted(contours, key=cv2.contourArea, reverse=True)[:5]
+        rgb_cols = kmeans_model.cluster_centers_.round(0).astype(int)
+        labels_count = Counter(cluster_labels)
+        # print(labels_count)
+        # print(kmeans_model.cluster_centers_)
 
-        # Detecting Edges through Contour approximation
-        if len(page) == 0:
-            return orig_img
-        # loop over the contours
-        for c in page:
-            # approximate the contour
-            epsilon = 0.02 * cv2.arcLength(c, True)
-            corners = cv2.approxPolyDP(c, epsilon, True)
-            # if our approximated contour has four points
-            if len(corners) == 4:
-                break
-        # Sorting the corners and converting them to desired shape.
+        clustered_img = np.reshape(rgb_cols[cluster_labels],(h,w,c)).astype(np.uint8)
+        #cv2.imwrite(dir + f"clustered_img.png", clustered_img)
+        # cv2.imshow('cluster',clustered_img)
+        # cv2.waitKey(0)
+
+        # Find the label of the largest cluster
+        largest_cluster_label = max(labels_count, key=labels_count.get)
+
+        # Dilate the largest cluster
+        largest_cluster_mask = (cluster_labels == largest_cluster_label).reshape(h, w)
+        cluster_image = (largest_cluster_mask * 255).astype(np.uint8)
+        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5, 5))
+        dilate = cv2.dilate(cluster_image, kernel, iterations=4)
+        #cv2.imwrite(dir + f"dilate.png", dilate)
+        # cv2.imshow('dilate', dilate)
+        # cv2.waitKey(0)
+
+        # Find convex hull
+        contours, hierarchy = cv2.findContours(dilate, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+        cnt = sorted(contours, key=cv2.contourArea, reverse=True)
+        largest_contour = cnt[0]
+        largest_cluster = cv2.drawContours(morph.copy(), [largest_contour], -1, (0, 255, 0), 2)
+        all_points = np.concatenate(largest_contour)
+        hull = cv2.convexHull(all_points)
+        hull_img = orig_img.copy()
+        cv2.drawContours(hull_img, [hull], -1, (0, 255, 0), 10)
+        # cv2.imwrite(dir + f"hull_img.png", hull_img)
+        # cv2.imshow('hull_img', hull_img)
+        # cv2.waitKey(0)
+
+        # approximate the contour
+        epsilon = 0.02 * cv2.arcLength(hull, True)
+        corners = cv2.approxPolyDP(hull, epsilon, True)
         corners = sorted(np.concatenate(corners).tolist())
-        # For 4 corner points being detected.
-        # Rearranging the order of the corner points.
         corners = order_points(corners)
+        corners_img = orig_img.copy()
+        for corner in corners:
+            cv2.circle(corners_img, tuple(corner), 20, (0, 255, 0), -1)
+        # cv2.imwrite(dir + f"corners_img.png", corners_img)
+        # cv2.imshow('corners_img', corners_img)
+        # cv2.waitKey(0)
 
         # Finding Destination Co-ordinates
         w1 = np.sqrt((corners[0][0] - corners[1][0]) ** 2 + (corners[0][1] - corners[1][1]) ** 2)
@@ -85,7 +115,6 @@ class imagePreprocessing:
 
         # Final destination co-ordinates.
         destination_corners = order_points(np.array([[0, 0], [w - 1, 0], [0, h - 1], [w - 1, h - 1]]))
-
         h, w = orig_img.shape[:2]
         # Getting the homography.
         homography, mask = cv2.findHomography(np.float32(corners), np.float32(destination_corners), method=cv2.RANSAC,
@@ -94,5 +123,26 @@ class imagePreprocessing:
         un_warped = cv2.warpPerspective(orig_img, np.float32(homography), (w, h), flags=cv2.INTER_LINEAR)
         # Crop
         final = un_warped[:destination_corners[2][1], :destination_corners[2][0]]
+
+        if (final.shape[0] * final.shape[1]) < (orig_img.shape[0] * orig_img.shape[1] / 10):
+            final = orig_img
+
+        # dir = 'D:\\STUDY\\DHSP\\Year3\\HK1\\DigitalImageProcessing-ThayVietDzeThuong\\Final-Project\\Document2Braille\\resources\\K-means_Result'
+        # cv2.imwrite(dir + f"final.png", final)
+
         return final
 
+# img = cv2.imread('D:\\STUDY\\DHSP\\Year3\\HK1\\DigitalImageProcessing-ThayVietDzeThuong\\Final-Project\\Document2Braille\\uploads\\test (29).jpg')
+# k = K_means(img)
+# k.cluster()
+
+# import os
+#
+# input_directory = 'D:\\STUDY\\DHSP\\Year3\\HK1\\DigitalImageProcessing-ThayVietDzeThuong\\Final-Project\\Document2Braille\\uploads\\'
+# output_directory = 'D:\\STUDY\\DHSP\\Year3\\HK1\\DigitalImageProcessing-ThayVietDzeThuong\\Final-Project\\Document2Braille\\resources\\K-means_Result\\'
+# for filename in os.listdir(input_directory):
+#     input_path = os.path.join(input_directory, filename)
+#     img = cv2.imread(input_path)
+#     k = K_means(img)
+#     final = k.cluster()
+#     cv2.imwrite(output_directory + filename, final)
