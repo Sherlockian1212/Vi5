@@ -13,7 +13,7 @@ max_length = 16
 num_beams = 4
 gen_kwargs = {"max_length": max_length, "num_beams": num_beams}
 
-class FormulaCaption:
+class ImageCaption:
     def __init__(self, image):
         self.image = image
     def imageCaption(self):
