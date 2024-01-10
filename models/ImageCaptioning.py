@@ -1,6 +1,8 @@
 from transformers import VisionEncoderDecoderModel, ViTFeatureExtractor, AutoTokenizer
 import torch
 from googletrans import Translator
+from PIL import Image
+import cv2
 
 model = VisionEncoderDecoderModel.from_pretrained("nlpconnect/vit-gpt2-image-captioning")
 feature_extractor = ViTFeatureExtractor.from_pretrained("nlpconnect/vit-gpt2-image-captioning")
@@ -19,6 +21,7 @@ class ImageCaption:
     def imageCaption(self):
         images = []
         i_image = self.image
+        i_image = Image.fromarray(cv2.cvtColor(self.image, cv2.COLOR_BGR2RGB))
         if i_image.mode != "RGB":
           i_image = i_image.convert(mode="RGB")
 
