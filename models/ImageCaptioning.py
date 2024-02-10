@@ -41,3 +41,7 @@ class ImageCaption:
             vi_text.append(translator.translate(text, dest='vi').text)
 
         return vi_text
+
+# path = r"D:\STUDY\DHSP\NCKH-2023-With my idol\Doc\Paper\image4.jpg"
+# img = cv2.imread(path)
+# print(ImageCaption(img).imageCaption())

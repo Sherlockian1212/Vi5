@@ -35,3 +35,14 @@ class Text2Speech:
         # Sử dụng os.chdir() để thiết lập thư mục mặc định
         os.chdir(new_default_directory)
         output.save('../output/output.mp3')
+
+# path = r"D:\STUDY\DHSP\NCKH-2023-With my idol\Vi6\models\runs\segment\predict\crops\Text\image0.jpg"
+# img = cv2.imread(path)
+# print(Text2Speech(img).image2Text())
+#
+# text = "không ghi nhận được"
+# output = gTTS(text, lang="vi", slow=False)
+# new_default_directory = os.getcwd()
+# # Sử dụng os.chdir() để thiết lập thư mục mặc định
+# os.chdir(new_default_directory)
+# output.save('../output/no_record.mp3')
