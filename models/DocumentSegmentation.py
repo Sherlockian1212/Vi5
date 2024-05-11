@@ -6,6 +6,8 @@ from FormulaCaptioning import FormulaCaption
 from ImageCaptioning import ImageCaption
 from Text2Speech import Text2Speech
 from PIL import Image
+import re
+from gtts import gTTS
 
 class DocumentSegmentation:
     def __init__(self, image):
@@ -42,12 +44,21 @@ class DocumentSegmentation:
             if l[4] == 4:
                 content = Text2Speech(cr_img).image2Text()
             elif l[4] == 0:
-                 content = FormulaCaption(cr_img).formulaCaption()
+                 content = 'Mô tả của công thức như sau ' + FormulaCaption(cr_img).formulaCaption()[0]
             elif l[4] == 2:
-                content = ImageCaption(cr_img).imageCaption()
+                content = 'Mô tả của hình ảnh như sau ' + ImageCaption(cr_img).imageCaption()[0]
             re.append(content)
         print(re)
         return re
-img = cv2.imread(r'D:\STUDY\DHSP\NCKH-2023-With my idol\Vi6\uploads\SGK03.png')
-re = DocumentSegmentation(img)
-re.result_text()
+img = cv2.imread(r'D:\STUDY\DHSP\NCKH-2023-With my idol\Vi6\uploads\SGK13.png')
+res = DocumentSegmentation(img)
+result = res.result_text()
+result = [''.join(sublist) for sublist in result]
+result = ''.join(result)
+print(result)
+processing_result = re.sub(r'[^\w\s]', '', result)
+processing_result = processing_result.replace('\n', ' ')
+text = processing_result
+print(text)
+output = gTTS(text, lang="vi", slow=False)
+output.save(r'D:\STUDY\DHSP\NCKH-2023-With my idol\Vi6\output\output.mp3')
