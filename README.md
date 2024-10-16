@@ -11,6 +11,9 @@ A SOLUTION TO FACILITATE DOCUMENT READING FOR THE VISUALLY IMPAIRED BASED ON DOC
 
 ### Instructor: Dr. NGO QUOC VIET (Thầy Việt dễ thương)
 
+### Paper
+Please visit our paper for more details: [click here](https://journal.hcmue.edu.vn/index.php/hcmuejos/article/view/4118)
+
 ## License
 
 [MIT](https://choosealicense.com/licenses/mit/)
